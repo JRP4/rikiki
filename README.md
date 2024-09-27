@@ -1,7 +1,7 @@
 # rikiki
 
 An application to play the card game Rikiki (also known as oh hell! or contract whist).
-The rules can be easily be found online.
+The rules can be easily be found online, such as here: https://rikiki.endrekadas.com/#/rules
 
 During the summer of 2020 (under a COVID lockdown) I was taught this game by a housemate, we played it in a group of 3 or 4 every evening.
 This project was designed as an aid to winning against my housemates in Rikiki using algorithmic assitance and eventually (due to their annoyance at it's success) as a seperate training aid.
