@@ -20,11 +20,49 @@ The `arena.py` file shows how to play a game with a human player and a couple of
 The human player prompts the user for what bid or card to play next.
 `cards.py` is a deck of cards class.
 
+There are a couple of bots that play according to very simple rules `basic_bot.py` and `basic_bot_v2.py`.
+You can also play using manual imputs by selecting one of the bots to be `human.py`. For this bot you are given a larger amount of information, which you can use to play along yourself and try to win against various bots.
+
+The majority of the code in this reposity is dedicated to the so-called NE_bot. NE stands for Nash Equilibrum which is a concept this bot uses to make optimal decisions. Bots have two tasks: the first is to come up with an appropriate bid using the knowledge of their cards. The second is to play cards optimally, in this situation bots have knowledge of their cards, the bids of all bots and previously played cards. The challenge is using information on the bids of oppenents to plan your strategy. The algorithms are found in `NE_bid_bot.py` and `NE_card_bot.py` respectively. Below is a summary of the methods in each file:
+
+### NE_card_bot
+The NE_card_bot uses a Nash Equilibrium approach to determine the best card to play in a given situation. Here's a summary of its method:
+
+Monte Carlo Simulation: The bot runs multiple simulations (default 1000) to account for different possible game states.
+Hand Generation: For each simulation, it generates possible hands for opponents based on known information and remaining cards.
+Game Tree Creation: It creates a full game tree for each simulation using the create_full_tree function, representing all possible future game states.
+Nash Equilibrium Calculation: The find_nash_scores function calculates Nash Equilibrium scores for each node in the game tree, starting from the leaves and moving up to the root.
+Action Scoring: The bot accumulates scores for each possible action (card to play) across all simulations.
+Best Action Selection: It chooses the action with the highest accumulated score as the best card to play.
+
+#### Key functions:
+
+`find_nash_scores`: Calculates Nash Equilibrium scores for the game tree.
+`get_root_action_scores`: Extracts scores for each possible action from the root of the tree.
+`find_best_action`: Accumulates scores across simulations and finds the best overall action.
+`find_best_action_overall`: Orchestrates the entire process, including simulation and score calculation.
+
+### NE_bid_bot
+The NE_bid_bot uses a similar Nash Equilibrium approach to determine the optimal bid. Here's a summary of its method:
+
+Monte Carlo Simulation: Like the card bot, it runs multiple simulations to account for different possible game states.
+Hand Generation: For each simulation, it generates possible hands for opponents.
+Game Tree Creation: It creates a full game tree for each simulation, representing all possible future game states.
+Nash Equilibrium Calculation: The find_nash_bids function calculates Nash Equilibrium bids for each node in the game tree.
+Bid Frequency Calculation: The bot counts the frequency of each possible bid across all simulations.
+Best Bid Selection: It chooses the most frequent bid as the optimal bid.
+
+#### Key functions:
+
+`create_full_tree`: Builds the game tree for a given game state.
+`find_nash_bids`: Calculates Nash Equilibrium bids for the game tree.
+`modify_list`: Introduces some randomness to the bids to account for imperfect play.
+`find_bid`: Orchestrates the entire process, including simulation and bid calculation.
+
+Both bots use helper functions like `valid_card_finder` and `refine_choices` to ensure that only legal moves are considered and to optimize the decision-making process.
+The main difference between the two bots is their objective: `NE_card_bot` aims to choose the best card to play, while `NE_bid_bot` focuses on making the optimal bid at the start of a round.
+
 ## To-do list
 This project is not complete, below is a list of programs still to be written:
-- Incoorporate the Monte-Carlo Tree Search (MCTS) algorithm.
-An adjustment needs to be made due to the lack of information a player has about the card their oppenent holds.
-This algorithm will be the basis of both the bidding and card choosing functions.
-A mechanism for adaptive play needs to be created.
-For example if an oppenent expected to win with a certain card and did not then their strategy may change - this is obvious to human players and thus the MCTS needs to be modified to compensate for this.
-- Another algorithmic approach to try is Counterfactual Regret Minimisation (CRM) as it is designed from the ground up to cope with imperfect information. CRM has found success in poker bots, which if anything is more complicated than Rikiki.
+- Improve the efficency of the NE_bot. One of the downsides of a Nash Equilibrium (NE) method is that the entire state space has to be searched, for large hand sizes this is computationally intensive. There are many ways to improve the efficency of the search such as: minimising replication, using heuristic-based search algorithms to only look in more promising areas of the state space and tranforming the problem.
+- Improve methods. I can still easily beat the NE_bot so there are clearly ways that it can be improved. Investigating methods uses in other card games might provide insights. But of couse part of the fun is coming up with these ideas on your own and trying them out!
