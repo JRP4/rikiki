@@ -19,7 +19,7 @@ class Rikiki(object):
             round_movement='up', # up, down or both
             minmax_size=[1,10], # smallest and largest hand sizes
             hell_bridge=True,
-            output_csv_file="data/game_log.csv",
+            #output_csv_file="data/game_log.csv",
             verbose=False # Result of every round is logged to csv
             ):
 
@@ -47,7 +47,7 @@ class Rikiki(object):
 
 		# Game variables
 		
-		# Make sure there are at least two bots in the auction
+		# Make sure there are at least two bots in the game
         if len(room)>1:
             self.room = room
         else:
@@ -58,9 +58,9 @@ class Rikiki(object):
 		# Game specific variables         
 
 		# Data export variables
-        self.output_csv_file = output_csv_file
-        self.error_log_csv_file = "data/error_log.csv"
-        self.game_start_time = str(datetime.datetime.now())
+        #self.output_csv_file = output_csv_file
+        #self.error_log_csv_file = "data/error_log.csv"
+        #self.game_start_time = str(datetime.datetime.now())
 
 		# Start the bots
         self.__initialise_bots()
@@ -112,7 +112,7 @@ class Rikiki(object):
         
 
 	##########################################
-	## Running a single round of the auction
+	## Running a single round of the game
 	##########################################
 
     def run_game(self):
@@ -133,6 +133,12 @@ class Rikiki(object):
                 self.current_round+=1
             
             self.finished=True
+
+            if self.verbose==True:
+                lst=[bot["score"] for bot in self.bots]
+                winner_position=lst.index(max(lst))
+                print("\n")
+                print("### WINNER: {} ###".format(self.bots[winner_position]["bot_unique_id"]))
 
 
     def __start_round(self):
@@ -194,12 +200,17 @@ class Rikiki(object):
             
             #the last bot to bid has an extra condition to follow.
             if self.bots[-1]['bot_instance']==bot['bot_instance'] and self.totbid+bid==self.round_order[self.current_round]:
-                print('last bot bid invalid')
                 bid=self.round_order[self.current_round]+1-self.totbid
             
             bot["aim_hands_won"]=bid
             #this variable is updated and used in the condition for the final bot
             self.totbid+=bid
+
+        if self.verbose==True:
+            print("\n")
+            print("### round {} bids ###".format(self.current_round+1))
+            print("bots: {}".format([bot["bot_unique_id"] for bot in self.bots]))
+            print("bids: {}".format([bot["aim_hands_won"] for bot in self.bots]))
             
     def __play_trick(self):
         #order bots according to postion and get them to play
@@ -236,9 +247,7 @@ class Rikiki(object):
             self.round_history[-1][bot["bot_unique_id"]]=bot["card_played"]
             
             self.cards[bot['bot_unique_id']].remove(bot["card_played"])
-            
-        if self.verbose==True:
-            print(self.round_history[-1])
+
         
     def __pick_winner_of_the_hand(self):
         #computes which player won the hand.
@@ -256,9 +265,16 @@ class Rikiki(object):
                     current_winner=bot["start_pos"]
                     winning_card=bot["card_played"]  
         self.bots[current_winner]["hands_won"]+=1
-        
+
         if self.verbose==True:
-            print("winner: {} {}".format(self.bots[current_winner]["bot_unique_id"],self.bots[current_winner]["card_played"]))
+            print("\n")
+            print("### round {} hand {} summary ###".format(self.current_round+1,sum([bot["hands_won"] for bot in self.bots])))
+            print("bots: {}".format([bot["bot_unique_id"] for bot in self.bots]))
+            print("trump: {}".format(self.trump))
+            print("cards played: {}".format([bot["card_played"] for bot in self.bots]))
+            print("WINNER: {}".format(self.bots[current_winner]["bot_unique_id"]))
+            print("tricks won: {}".format([bot["hands_won"] for bot in self.bots]))
+            print("tricks bid: {}".format([bot["aim_hands_won"] for bot in self.bots]))
         
         for bot in self.bots:
             new_pos=bot["start_pos"]-current_winner
@@ -267,6 +283,9 @@ class Rikiki(object):
         
     def __update_scores(self):
         #updates the scorces and other variables.
+
+        old_scores=[bot["score"] for bot in self.bots]
+
         for bot in self.bots:
             new_pos = self.round_start_pos[bot["bot_unique_id"]]-1
             self.round_start_pos[bot["bot_unique_id"]]=new_pos%len(self.room)
@@ -275,16 +294,22 @@ class Rikiki(object):
                 bot["score"]+=10+2*bot["aim_hands_won"]
             else:
                 bot["score"]-=2*abs(bot["hands_won"]-bot["aim_hands_won"])
-                
-            #reset hands
+
+        #print info from round    
+        if self.verbose==True:
+            print("\n")
+            print("### round {} summary ###".format(self.current_round+1))
+            print("bots: {}".format([bot["bot_unique_id"] for bot in self.bots] ))
+            print("tricks bid: {}".format([bot["aim_hands_won"] for bot in self.bots] ))
+            print("tricks won: {}".format([bot["hands_won"] for bot in self.bots] ))
+            print("beginning of round scores: {}".format(old_scores))
+            print("end of round scores: {}".format([bot["score"] for bot in self.bots]))
+
+        #reset hands
+        for bot in self.bots:
             bot['hands_won']=0
             bot['aim_hands_won']=''
-            
-        if self.verbose==True:
-            print("Bot name: {}".format([bot["bot_unique_id"] for bot in self.bots] ))
-            print("Bot score: {}".format([bot["score"] for bot in self.bots]))
-            
-        
+                
     def __valid_card(self):
         #checks that the bot plays a card that is in their hand.
         for bot in self.bots[1:]:

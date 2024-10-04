@@ -2,12 +2,16 @@ from random import shuffle
 
 #class for shuffling and dealing a standard deck of cards
 class Cards:
-    def __init__(self):
+    def __init__(self, excluded_cards=None):
         # suits are labelled according to the first letter in the suit of a standard deck of cards
         values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
         suits = ['H', 'S', 'C', 'D']
         # the + in the line below performs a concatenation of strings, hence outputs is 'AH', '4D', etc.
         self.deck = [j + i for j in values for i in suits]
+
+        # Remove excluded cards from the deck
+        if excluded_cards:
+            self.deck = [card for card in self.deck if card not in excluded_cards]
 
     def shuffle(self):
         shuffle(self.deck)
